@@ -3,10 +3,6 @@ from django.shortcuts import render
 from blog.models import Comment, Post, Tag
 
 
-def get_related_posts_count(tag):
-    return tag.posts.count()
-
-
 def serialize_post(post):
     return {
         'title': post.title,
@@ -29,14 +25,16 @@ def serialize_tag(tag):
 
 
 def index(request):
-    popular_posts = Post.objects.annotate(post_likes=Count('likes')).order_by('-post_likes')
+    popular_posts = Post.objects.prefetch_related('author').annotate(post_likes=Count('likes')).order_by('-post_likes')
     most_popular_posts = popular_posts[:5]
 
-    fresh_posts = Post.objects.order_by('published_at')
+    fresh_posts = Post.objects.order_by('published_at').prefetch_related('author')
     most_fresh_posts = list(fresh_posts)[-5:]
 
     popular_tags = Tag.objects.annotate(tag_posts=Count('posts')).order_by('-tag_posts')
     most_popular_tags = popular_tags[:5]
+
+
 
     context = {
         'most_popular_posts': [
