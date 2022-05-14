@@ -22,7 +22,7 @@ def serialize_post_optimized(post):
         'title': post.title,
         'teaser_text': post.text[:200],
         'author': post.author.username,
-        'comments_amount': len(Comment.objects.filter(post=post)),
+        'comments_amount': post.comments_count,
         'image_url': post.image.url if post.image else None,
         'published_at': post.published_at,
         'slug': post.slug,
@@ -39,10 +39,22 @@ def serialize_tag(tag):
 
 
 def index(request):
-    popular_posts = Post.objects.prefetch_related('author').annotate(post_likes=Count('likes')).order_by('-post_likes')
+    popular_posts = Post.objects.prefetch_related('author') \
+        .annotate(post_likes=Count('likes')).order_by('-post_likes')
+    popular_posts_ids = [post.id for post in popular_posts]
+
+    posts_with_comments = Post.objects.filter(id__in=popular_posts_ids).annotate(comments_count=Count('comments'))
+    ids_and_comments = posts_with_comments.values_list('id', 'comments_count')
+    count_for_id = dict(ids_and_comments)
+
+    for post in popular_posts:
+        post.comments_count = count_for_id[post.id]
+
     most_popular_posts = popular_posts[:5]
 
-    fresh_posts = Post.objects.order_by('published_at').prefetch_related('author')
+    fresh_posts = Post.objects.prefetch_related('author') \
+        .annotate(comments_count=Count('comments')).order_by('published_at')
+
     most_fresh_posts = list(fresh_posts)[-5:]
 
     popular_tags = Tag.objects.annotate(tag_posts=Count('posts')).order_by('-tag_posts')
@@ -127,3 +139,7 @@ def contacts(request):
     # позже здесь будет код для статистики заходов на эту страницу
     # и для записи фидбека
     return render(request, 'contacts.html', {})
+
+
+def get_related_posts_count(tag):
+    return tag.posts.count()
