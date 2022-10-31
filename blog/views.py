@@ -107,7 +107,3 @@ def contacts(request):
     # позже здесь будет код для статистики заходов на эту страницу
     # и для записи фидбека
     return render(request, 'contacts.html', {})
-
-
-def get_related_posts_count(tag):
-    return tag.posts.count()
