@@ -8,12 +8,12 @@ def index(request):
     most_popular_posts = Post.objects.popular() \
                              .prefetch_related(
         'author',
-        Prefetch('tags', queryset=Tag.objects.annotate(tag_posts=Count('posts'))))[:5] \
+        Prefetch('tags', queryset=Tag.objects.annotate(posts_number=Count('posts'))))[:5] \
         .fetch_with_comments_count()
 
     fresh_posts = Post.objects.prefetch_related(
         'author',
-        Prefetch('tags', queryset=Tag.objects.annotate(tag_posts=Count('posts')))
+        Prefetch('tags', queryset=Tag.objects.annotate(posts_number=Count('posts')))
     ) \
         .annotate(comments_count=Count('comments')).order_by('published_at')
 
@@ -44,7 +44,7 @@ def post_detail(request, slug):
 
     likes = post.likes.all()
 
-    related_tags = post.tags.annotate(tag_posts=Count('posts'))
+    related_tags = post.tags.annotate(posts_number=Count('posts'))
 
     serialized_post = {
         'title': post.title,
@@ -63,7 +63,7 @@ def post_detail(request, slug):
     most_popular_posts = Post.objects.popular() \
                              .prefetch_related(
         'author',
-        Prefetch('tags', queryset=Tag.objects.annotate(tag_posts=Count('posts'))))[:5] \
+        Prefetch('tags', queryset=Tag.objects.annotate(posts_number=Count('posts'))))[:5] \
         .fetch_with_comments_count()
 
     context = {
@@ -84,12 +84,12 @@ def tag_filter(request, tag_title):
     most_popular_posts = Post.objects.popular() \
                              .prefetch_related(
         'author',
-        Prefetch('tags', queryset=Tag.objects.annotate(tag_posts=Count('posts'))))[:5] \
+        Prefetch('tags', queryset=Tag.objects.annotate(posts_number=Count('posts'))))[:5] \
         .fetch_with_comments_count()
 
     related_posts = Post.objects.filter(tags__title=tag_title).prefetch_related(
         'author',
-        Prefetch('tags', queryset=Tag.objects.annotate(tag_posts=Count('posts')))
+        Prefetch('tags', queryset=Tag.objects.annotate(posts_number=Count('posts')))
     )[:20].fetch_with_comments_count()
 
     context = {

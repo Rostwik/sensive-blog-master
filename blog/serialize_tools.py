@@ -15,5 +15,5 @@ def serialize_post(post):
 def serialize_tag(tag):
     return {
         'title': tag.title,
-        'posts_with_tag': tag.tag_posts,
+        'posts_with_tag': tag.posts_number,
     }
